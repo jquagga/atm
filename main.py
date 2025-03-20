@@ -15,23 +15,25 @@ hosts = os.environ.get("HOSTS", "127.0.0.1").split(",")
 settings = {}
 
 # Default apps - enable time and disable the rest
-settings["TIM"] = True
-settings["DAT"] = False
-settings["HUM"] = False
-settings["TEMP"] = False
-settings["BAT"] = False
+settings["TIM"] = os.environ.get("TIM", True)
+settings["DAT"] = os.environ.get("DAT", False)
+settings["HUM"] = os.environ.get("HUM", False)
+settings["TEMP"] = os.environ.get("TEMP", False)
+settings["BAT"] = os.environ.get("BAT", False)
 
 # Auto Brightness & Auto App Switch (if more than one)
 settings["ABRI"] = True
 settings["ATRANS"] = True
-settings["TEFF"] = 10  # Transition Effect
+settings["TEFF"] = os.environ.get("TEFF", 10)  # Transition Effect
 
 # Time Format, Day of Week, C or F Temp
-settings["SOM"] = False  # Week start on Monday; false is start on Sunday
-settings["CEL"] = False  # Degrees C; False is Degrees F
-settings["TMODE"] = 0  # 1 is the default, I like no calendar
-settings["TFORMAT"] = "%l:%M"  # 12 hour time
-settings["WD"] = False  # Show the day of week?
+settings["SOM"] = os.environ.get(
+    "SOM", True
+)  # Week start on Monday; false is start on Sunday
+settings["CEL"] = os.environ.get("CEL", True)  # Degrees C; False is Degrees F
+settings["TMODE"] = os.environ.get("TMODE", 0)  # 1 is the default, I like no calendar
+settings["TFORMAT"] = os.environ.get("TFORMAT", "%H:%M")  # 12 hour time
+settings["WD"] = os.environ.get("WD", False)  # Show the day of week?
 settings["OVERLAY"] = "clear"  # Zero out weather by default
 
 
