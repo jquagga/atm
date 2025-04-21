@@ -67,7 +67,7 @@ def update_device():
             # And now lets go through and make sure the 3 indicators are turned off
             # They seem to turn on for no reason?
             for indicator in ["indicator1", "indicator2", "indicator3"]:
-                requests.post(f"http://{host}/api/{indicator}", json={"color": 0})
+                requests.post(f"http://{host}/api/{indicator}", json={"color": "0"})
             print(f"{host} updated!")
         except requests.exceptions.RequestException as e:
             print(e)
