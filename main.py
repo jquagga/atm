@@ -71,7 +71,6 @@ def update_device():
             print(f"{host} updated!")
         except requests.exceptions.RequestException as e:
             print(e)
-            pass
 
 
 def main():
