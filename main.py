@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 
+from datetime import datetime
 import os
 import time
-from datetime import datetime
 
 import requests
 import schedule
 
 # Set our hosts from the HOSTS environmental variable
 # See docker-compose.yml for how that works.
-hosts = os.environ.get("HOSTS", "127.0.0.1").split(",")
+hosts: list[str] = os.environ.get("HOSTS", "127.0.0.1").split(sep=",")
 
 # Settings is the dict which holds ... the settings
-settings = {}
+settings: dict[str, bool | int | str] = {}
 
 # Default apps - enable time and disable the rest
 settings["TIM"] = os.environ.get("TIM", True)
@@ -37,7 +37,7 @@ settings["WD"] = os.environ.get("WD", False)  # Show the day of week?
 settings["OVERLAY"] = "clear"  # Zero out weather by default
 
 
-def night_mode_on():
+def night_mode_on() -> None:
     # Red screen, no app switching, minimal brightness
     settings["TIME_COL"] = "#FF0000"
     settings["ABRI"] = False
@@ -47,7 +47,7 @@ def night_mode_on():
     update_device()
 
 
-def night_mode_off():
+def night_mode_off() -> None:
     # White text, auto brightness, app switching (if more than one)
     settings["TIME_COL"] = "#FFFFFF"
     settings["ABRI"] = True
@@ -57,23 +57,25 @@ def night_mode_off():
     update_device()
 
 
-def update_device():
+def update_device() -> None:
     for host in hosts:
         try:
             # Ok, first lets load our settings
-            requests.post(f"http://{host}/api/settings", json=settings)
+            _ = requests.post(url=f"http://{host}/api/settings", json=settings)
             # Now switch to the time app
-            requests.post(f"http://{host}/api/switch", json={"name": "Time"})
+            _ = requests.post(url=f"http://{host}/api/switch", json={"name": "Time"})
             # And now lets go through and make sure the 3 indicators are turned off
             # They seem to turn on for no reason?
             for indicator in ["indicator1", "indicator2", "indicator3"]:
-                requests.post(f"http://{host}/api/{indicator}", json={"color": "0"})
+                _ = requests.post(
+                    url=f"http://{host}/api/{indicator}", json={"color": "0"}
+                )
             print(f"{host} updated!")
         except requests.exceptions.RequestException as e:
             print(e)
 
 
-def main():
+def main() -> None:
     print(datetime.now())
     if datetime.now().hour < 6 or datetime.now().hour >= 20:
         night_mode_on()
@@ -81,8 +83,8 @@ def main():
         night_mode_off()
 
     # Schedule Day / Night Mode updates:
-    schedule.every().day.at("06:00").do(night_mode_off)
-    schedule.every().day.at("20:00").do(night_mode_on)
+    _ = schedule.every().day.at(time_str="06:00").do(job_func=night_mode_off)
+    _ = schedule.every().day.at(time_str="20:00").do(job_func=night_mode_on)
 
     # Finally, let's start the loop to run updates on the schedule:
     print("Starting Schedule Loop")
