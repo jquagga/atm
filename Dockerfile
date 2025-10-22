@@ -1,5 +1,5 @@
 # First, build the application in the `/app` directory
-FROM ghcr.io/astral-sh/uv:bookworm-slim@sha256:f3cc6fbdfcca56cdcdb551912f0c99c0bf76a99b7efa2cf55a2a65082cd08dea AS builder
+FROM ghcr.io/astral-sh/uv:bookworm-slim@sha256:8558fe5cdb7c690a6e308bd3ad0caf4d17aef1c74d5387ad22b92518102f0f98 AS builder
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 
 # Configure the Python directory so it is consistent
