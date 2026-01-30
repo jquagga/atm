@@ -9,7 +9,7 @@ ENV UV_PYTHON_INSTALL_DIR=/python
 ENV UV_PYTHON_PREFERENCE=only-managed
 
 # Install Python before the project for caching
-RUN uv python install
+RUN uv python install 3.14
 
 WORKDIR /app
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -36,4 +36,4 @@ CMD ["python", "-u", "/app/main.py"]
 
 # Healthcheck to verify the application is running
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD python -c "import sys; sys.exit(0)" || exit 1
+  CMD ["python", "-c", "import sys; sys.exit(0)"]

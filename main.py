@@ -10,6 +10,7 @@ from datetime import datetime
 import requests
 import schedule
 
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -48,6 +49,44 @@ settings["TMODE"] = os.environ.get("TMODE", 0)  # 1 is the default, I like no ca
 settings["TFORMAT"] = os.environ.get("TFORMAT", "%H:%M")  # 12 hour time
 settings["WD"] = os.environ.get("WD", False)  # Show the day of week?
 settings["OVERLAY"] = "clear"  # Zero out weather by default
+
+
+def _post_to_host(host: str, path: str, payload: dict) -> None:
+    """Send a POST request to a host with the given path and payload.
+
+    Args:
+        host: The target host address.
+        path: The API path to post to.
+        payload: The JSON payload to send.
+
+    Raises:
+        requests.exceptions.RequestException: If the request fails.
+    """
+    url = f"http://{host}{path}"
+    response = requests.post(url, json=payload, timeout=10)
+    response.raise_for_status()
+
+
+def _log_request_error(host: str, exc: requests.exceptions.RequestException) -> None:
+    """Log request errors with appropriate detail based on exception type.
+
+    Args:
+        host: The target host that failed.
+        exc: The request exception that occurred.
+    """
+    if isinstance(exc, requests.exceptions.Timeout):
+        logger.error("Timeout while updating %s", host)
+    elif isinstance(exc, requests.exceptions.ConnectionError):
+        logger.error("Connection failed to %s - host may be unreachable", host)
+    elif isinstance(exc, requests.exceptions.HTTPError) and exc.response is not None:
+        logger.error(
+            "HTTP error %s from %s: %s",
+            exc.response.status_code,
+            host,
+            exc.response.text,
+        )
+    else:
+        logger.error("Unexpected error updating %s: %s", host, exc)
 
 
 def night_mode_on():
@@ -92,43 +131,16 @@ def update_device():
     """
     for host in hosts:
         try:
-            # First, load our settings
-            response = requests.post(
-                f"http://{host}/api/settings", json=settings, timeout=10
-            )
-            response.raise_for_status()
+            _post_to_host(host, "/api/settings", settings)
+            _post_to_host(host, "/api/switch", {"name": "Time"})
 
-            # Now switch to the time app
-            response = requests.post(
-                f"http://{host}/api/switch", json={"name": "Time"}, timeout=10
-            )
-            response.raise_for_status()
-
-            # Turn off all three indicators (they sometimes turn on unexpectedly)
             for indicator in ["indicator1", "indicator2", "indicator3"]:
-                response = requests.post(
-                    f"http://{host}/api/{indicator}", json={"color": "0"}, timeout=10
-                )
-                response.raise_for_status()
+                _post_to_host(host, f"/api/{indicator}", {"color": "0"})
 
-            logger.info(f"{host} updated successfully")
+            logger.info("%s updated successfully", host)
 
-        except requests.exceptions.Timeout:
-            logger.error(f"Timeout while updating {host}")
-        except requests.exceptions.ConnectionError:
-            logger.error(f"Connection failed to {host} - host may be unreachable")
-        except requests.exceptions.HTTPError as e:
-            logger.error(
-                f"HTTP error {e.response.status_code} from {host}: {e.response.text}"
-            )
         except requests.exceptions.RequestException as e:
-            logger.error(f"Unexpected error updating {host}: {e}")
-
-
-def signal_handler(signum, frame):
-    """Handle shutdown signals gracefully."""
-    logger.info(f"Received signal {signum}, exiting gracefully...")
-    sys.exit(0)
+            _log_request_error(host, e)
 
 
 def main():
@@ -137,11 +149,20 @@ def main():
     Initializes signal handlers, sets initial day/night mode based on current time,
     and runs the scheduled update loop.
     """
+    # Flag for graceful shutdown
+    shutdown_requested = False
+
+    def signal_handler(signum, frame):
+        """Handle shutdown signals gracefully."""
+        nonlocal shutdown_requested
+        logger.info("Received signal %s, initiating graceful shutdown...", signum)
+        shutdown_requested = True
+
     # Register signal handlers for graceful shutdown
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
-    logger.info(f"AwTrix Manager starting at {datetime.now()}")
+    logger.info("AwTrix Manager starting at %s", datetime.now())
 
     # Set initial mode based on current time
     if datetime.now().hour < 6 or datetime.now().hour >= 20:
@@ -155,9 +176,11 @@ def main():
 
     # Start the schedule loop
     logger.info("Starting Schedule Loop")
-    while True:
+    while not shutdown_requested:
         schedule.run_pending()
         time.sleep(1)
+
+    logger.info("Shutdown complete, exiting...")
 
 
 if __name__ == "__main__":
