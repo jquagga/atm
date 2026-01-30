@@ -5,6 +5,12 @@ services:
     init: true
     hostname: atm
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     volumes:
       - /etc/localtime:/etc/localtime:ro
     environment:
