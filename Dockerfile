@@ -1,5 +1,5 @@
 # First, build the application in the `/app` directory
-FROM ghcr.io/astral-sh/uv:debian-slim@sha256:8575053953965b9b5c8a27672fd0102ba1056e08fedb14dffe07b15eba4e2e49 AS builder
+FROM ghcr.io/astral-sh/uv:debian-slim@sha256:1efa77c494ca09248522aa8160a2907f5c481eda4287ffdaf32578a0fa1d2c96 AS builder
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 
 # Configure the Python directory so it is consistent
