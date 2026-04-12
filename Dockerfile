@@ -1,5 +1,5 @@
 # First, build the application in the `/app` directory
-FROM ghcr.io/astral-sh/uv:debian-slim@sha256:7dd2eb4cfd8b90b6f1950a5da16f35e68729cb0255161b21d6380b7f764242fb AS builder
+FROM ghcr.io/astral-sh/uv:debian-slim@sha256:d847388977f3a8ce1f18634ab540b8b2337ef1971d2bb4c63ba8e7d7f057441f AS builder
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 
 # Configure the Python directory so it is consistent
@@ -21,7 +21,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
 # Then, use a final image without uv
-FROM gcr.io/distroless/base-debian13:nonroot@sha256:a696c7c8545ba9b2b2807ee60b8538d049622f0addd85aee8cec3ec1910de1f9
+FROM gcr.io/distroless/base-debian13:nonroot@sha256:fb282f8ed3057f71dbfe3ea0f5fa7e961415dafe4761c23948a9d4628c6166fe
 # Copy the Python version
 COPY --from=builder --chown=python:python /python /python
 
