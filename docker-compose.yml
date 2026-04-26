@@ -1,6 +1,6 @@
 services:
   atm:
-    image: ghcr.io/jquagga/atm:main@sha256:b4363bea03208be718c9bf0d757ec1e00f6f1c665d434a22124bdef9b9c643e6
+    image: ghcr.io/jquagga/atm:main@sha256:db9c4f78e995044af7924823fb865c13ee69a63954242ff725953028419df5b0
     container_name: atm
     init: true
     hostname: atm
